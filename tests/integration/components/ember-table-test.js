@@ -10,6 +10,7 @@ import {
   generateColumns,
   generateRows,
   setupFullTable,
+  generateTreeRows,
   DEFAULT_ROW_COLUMN_COUNT,
   DEFAULT_COLUMN_WIDTH
 } from '../../helpers/test-scenarios';
@@ -390,7 +391,6 @@ test('Swapping column event', async function(assert) {
   `);
 
   let tablePage = TablePage.create();
-  // await tablePage.header.columns.eq(1).moveByIndex(1);
   await tablePage.header.columns.eq(1).moveByIndex(-1);
   assert.equal(
     tablePage.header.columns.eq(1).text.trim(),
@@ -432,4 +432,39 @@ test('Destroying table ignores resize event and does not trigger error', async f
 
   find('#container').style.height = '600px';
   this.set('showComponent', false);
+});
+
+
+test('Table with tree nodes should render', async function(assert) {
+  assert.expect(1);
+
+  let columnCount = 15;
+  this.set('columns', generateColumns(columnCount));
+  this.set('rows', generateTreeRows(3, columnCount));
+
+  this.render(hbs`
+    <div style="height: 500px;">
+      {{#ember-table
+        columns=columns
+        rows=rows
+        estimateRowHeight=13
+        as |r|
+      }}
+
+        {{#ember-table-row
+          row=r
+
+          as |cell|
+        }}
+          {{cell.value}}
+        {{/ember-table-row}}
+      {{/ember-table}}
+    </div>
+  `);
+
+  let tablePage = TablePage.create();
+  assert.ok(
+    tablePage.body.rows.length > 0,
+    'Rows should be rendered for table with tree node'
+  );
 });

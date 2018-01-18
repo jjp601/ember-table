@@ -3,6 +3,10 @@ import { A as emberA } from '@ember/array';
 import wait from 'ember-test-helpers/wait';
 import { isNone } from '@ember/utils';
 
+import TreeNode from 'ember-table/utils/tree-node';
+import LinkedListTree from 'ember-table/utils/linked-list-tree';
+import EmberObject from '@ember/object';
+
 export const DEFAULT_TABLE_OPTIONS = {
   numFixedColumns: 1,
   columnMode: 'standard',
@@ -32,6 +36,39 @@ export function generateRows(rowCount, columnCount) {
   }
 
   return arr;
+}
+
+const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+function getTreeRow(title, columnCount) {
+  let row = EmberObject.create({
+    'id': title
+  });
+  for (let j = 0; j < columnCount; j++) {
+    row.set(ALPHABET[j], ALPHABET[j]);
+  }
+  return row;
+}
+
+export function generateTreeRows(childCount, columnCount) {
+  let topRow = new TreeNode(null, getTreeRow('Top Row', columnCount));
+  for (let i = 0; i < childCount; i++) {
+    let header = new TreeNode(topRow, getTreeRow(`Header ${i}`, columnCount));
+    for (let j = 0; j < childCount; j++) {
+      let group = new TreeNode(header, getTreeRow(`Group ${j}`, columnCount));
+      for (let k = 0; k < childCount; k++) {
+        group.addChild(new TreeNode(group, getTreeRow(`Leaf ${k}`, columnCount)));
+      }
+
+      header.addChild(group);
+    }
+
+    topRow.addChild(header);
+  }
+
+  let root = new TreeNode(null, null);
+  root.addChild(topRow);
+
+  return new LinkedListTree(root);
 }
 
 export function generateColumns(columnCount, columnOptions) {
